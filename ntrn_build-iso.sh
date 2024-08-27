@@ -70,8 +70,9 @@ function HandleBranding {
     fi
 
     consoleMsg "info" "Removing branding..."
-    ${PATH_DIR_SELF}/ntrn/splash.sh --src ./ntrn/splash.png \
-    --dst ./data/live-build-config/includes.binary/isolinux/splash.png \
+    ${PATH_DIR_SELF}/ntrn/splash.sh \
+    --src "$PATH_DIR_SELF/ntrn/splash.png" \
+    --dst "$PATH_DIR_SELF/vyos-build/data/live-build-config/includes.binary/isolinux/splash.png" \
     --text "v$LATEST release $DATE" \
     --font-size 18 \
     --text-color white \
