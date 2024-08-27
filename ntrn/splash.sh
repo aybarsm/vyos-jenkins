@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 set -e
-source "$(dirname -- "$( readlink -f -- "$0"; )")/helper"
+PATH_DIR_SELF=$(dirname -- "$( readlink -f -- "$0"; )")
+source "$PATH_DIR_SELF/helper"
 
 if ! command -v convert &> /dev/null; then
     consoleMsg "warning" "ImageMagick is missing. Installing..."
