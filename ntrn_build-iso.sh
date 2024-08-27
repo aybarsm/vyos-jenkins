@@ -78,6 +78,7 @@ function HandleBranding {
     --y-align bottom \
     --x-margin 20 \
     --y-margin 20
+    consoleMsg "success" "$name splash image generated."
 
     # cp ../extras/not-vyos/splash.png ./data/live-build-config/includes.binary/isolinux/splash.png
     sed -i "s/VyOS/$name/" ./data/live-build-config/includes.binary/isolinux/menu.cfg

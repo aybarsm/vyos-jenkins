@@ -101,7 +101,6 @@ case "$X_ALIGN" in
     TEXT_X=$(( $IMAGE_WIDTH - $TEXT_WIDTH - $X_MARGIN ))
     ;;
 esac
-echo "TEXT_X: $TEXT_X"
 
 case "$Y_ALIGN" in
   top)
