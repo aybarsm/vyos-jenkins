@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+function consoleMsg
+{
+    local MSG_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local MESSAGE=${2:-''}
+
+    if [ -z "$MESSAGE" ]; then
+        return
+    fi
+
+    local TYPE=${1:-''}
+    if [ "$TYPE" == "info" ] ; then
+        COLOR="96m";
+    elif [ "$TYPE" == "success" ] ; then
+        COLOR="92m";
+    elif [ "$TYPE" == "warning" ] ; then
+        COLOR="93m";
+    elif [ "$TYPE" == "danger" ] ; then
+        COLOR="91m";
+    else
+        COLOR="97m";
+    fi
+    
+    local PREPEND=${3:-''}
+    if ! [ -z "$PREPEND" ]; then
+        PREPEND="$PREPEND "
+    fi
+    
+    printf "\033[40;$COLOR[$MSG_TIMESTAMP] $PREPEND%s\033[0m\n" "$MESSAGE"
+}
+
+function str_between {
+  local LEFT=${1#*"$2"}
+  echo ${LEFT%%"$3"*}
+}
