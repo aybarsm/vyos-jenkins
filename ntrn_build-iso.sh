@@ -3,6 +3,7 @@
 set -e
 
 source ./auto/helper-logic
+source ./ntrn/helper
 
 # Clear the screen first
 clear
@@ -21,12 +22,32 @@ EnsureStageIsComplete 8
 
 read -p "Please enter which branch you want to build (equuleus or sagitta): " BRANCH
 read -p "Please enter your build-by identifier (like e-mail): " BUILD_BY
+read -p "Build comment (can be empty) " BUILD_COMMENT
 echo
 
 if ([ "$BRANCH" != "equuleus" ] && [ "$BRANCH" != "sagitta" ]); then
   >&2 echo -e "${RED}Invalid branch${NOCOLOR}"
   exit 1
 fi
+
+function GetLatestTag {
+  # Clone the vyos-1x repo
+  git clone -q --bare https://github.com/vyos/vyos-1x.git -b $1 temp-git-tag > /dev/null
+  pushd temp-git-tag > /dev/null
+
+  # The the latest tag for this branch
+  git describe --tags --abbrev=0
+
+  popd > /dev/null
+  rm -rf temp-git-tag
+}
+
+DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+DATE_SAFE=${DATE//-/}
+DATE_SAFE=${DATE//:/}
+
+LATEST=$(GetLatestTag "$BRANCH")
+RELEASE_NAME="$LATEST-release-$DATE_SAFE"
 
 if [ -d vyos-build ]; then
   echo "Removing old vyos-build directory..."
@@ -48,7 +69,17 @@ function HandleBranding {
     fi
 
     echo "Removing branding..."
-    cp ../extras/not-vyos/splash.png ./data/live-build-config/includes.binary/isolinux/splash.png
+    ./ntrn/splash.sh --src ./ntrn/splash.png \
+    --dst ./data/live-build-config/includes.binary/isolinux/splash.png \
+    --text "v$LATEST release $DATE" \
+    --font-size 18 \
+    --text-color white \
+    --x-align left \
+    --y-align bottom \
+    --x-margin 20 \
+    --y-margin 20
+
+    # cp ../extras/not-vyos/splash.png ./data/live-build-config/includes.binary/isolinux/splash.png
     sed -i "s/VyOS/$name/" ./data/live-build-config/includes.binary/isolinux/menu.cfg
     defaultToml="./data/defaults.toml"
     if [ -f "$defaultToml" ]; then
@@ -73,8 +104,6 @@ fi
 echo "Downloading apt signing key..."
 curl -s -S --fail-with-body http://172.17.17.17/apt.gpg.key -o /tmp/apt.gpg.key
 
-DATE=$(date +%Y%m%d)
-
 popd > /dev/null
 
 function GetLatestTag {
@@ -94,16 +123,14 @@ customPackages=${CUSTOM_PACKAGES:-$customPackages}
 
 echo "Building the ISO..."
 if [ "$BRANCH" == "equuleus" ]; then
-  LATEST=`GetLatestTag equuleus`
-  RELEASE_NAME="$LATEST-release-$DATE"
-
   function DockerBuild {
-    echo "Using arguments: --build-by '$1' --version '$2' --custom-package '$3'"
+    echo "Using arguments: --build-by '$1' --version '$2' --custom-package '$3' --build-comment '$4'"
     docker run --rm --privileged -v ./vyos-build/:/vyos -v "/tmp/apt.gpg.key:/opt/apt.gpg.key" -w /vyos --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g) -w /vyos vyos/vyos-build:equuleus \
       sudo ./configure \
       --architecture amd64 \
       --build-by "$1" \
       --build-type release \
+      --build-comment "$4" \
       --version "$2" \
       --vyos-mirror http://172.17.17.17/equuleus \
       --debian-elts-mirror http://172.17.17.17:3142/deb.freexian.com/extended-lts \
@@ -114,16 +141,14 @@ if [ "$BRANCH" == "equuleus" ]; then
       sudo make iso
   }
 elif [ "$BRANCH" == "sagitta" ]; then
-  LATEST=`GetLatestTag sagitta`
-  RELEASE_NAME="$LATEST-release-$DATE"
-
   function DockerBuild {
-    echo "Using arguments: --build-by '$1' --version '$2' --custom-package '$3'"
+    echo "Using arguments: --build-by '$1' --version '$2' --custom-package '$3' --build-comment '$4'"
     docker run --rm --privileged --name="vyos-build" -v ./vyos-build/:/vyos -v "/tmp/apt.gpg.key:/opt/apt.gpg.key" -w /vyos --sysctl net.ipv6.conf.lo.disable_ipv6=0 -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g) -w /vyos vyos/vyos-build:sagitta \
       sudo --preserve-env ./build-vyos-image iso \
       --architecture amd64 \
       --build-by "$1" \
       --build-type release \
+      --build-comment "$4" \
       --debian-mirror http://deb.debian.org/debian/ \
       --version "$2" \
       --vyos-mirror http://172.17.17.17/sagitta \
@@ -135,7 +160,7 @@ else
   exit 1
 fi
 
-dockerBuild="DockerBuild \"$BUILD_BY\" \"$RELEASE_NAME\" \"$customPackages\""
+dockerBuild="DockerBuild \"$BUILD_BY\" \"$RELEASE_NAME\" \"$customPackages\" \"$BUILD_COMMENT\""
 if ! IsFlagSet "-v" "$@"; then
   dockerBuild=${dockerBuild//\"/\\\"} # escape double quotes with backslash
   dockerBuild="RunWithLazyStdout \"$dockerBuild\""
