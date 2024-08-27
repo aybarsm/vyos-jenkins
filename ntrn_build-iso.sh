@@ -45,7 +45,7 @@ function GetLatestTag {
 
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 DATE_SAFE=${DATE//-/}
-DATE_SAFE=${DATE//:/}
+DATE_SAFE=${DATE_SAFE//:/}
 
 LATEST=$(GetLatestTag "$BRANCH")
 RELEASE_NAME="$LATEST-release-$DATE_SAFE"
