@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
-source ./helper
+source "$(dirname -- "$( readlink -f -- "$0"; )")/helper"
 
 if ! command -v convert &> /dev/null; then
     consoleMsg "warning" "ImageMagick is missing. Installing..."
