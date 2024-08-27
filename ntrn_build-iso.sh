@@ -68,7 +68,7 @@ function HandleBranding {
       name="NOTvyos"
     fi
 
-    echo "Removing branding..."
+    consoleMsg "info" "Removing branding..."
     ./ntrn/splash.sh --src ./ntrn/splash.png \
     --dst ./data/live-build-config/includes.binary/isolinux/splash.png \
     --text "v$LATEST release $DATE" \
@@ -80,7 +80,6 @@ function HandleBranding {
     --y-margin 20
     consoleMsg "success" "$name splash image generated."
 
-    # cp ../extras/not-vyos/splash.png ./data/live-build-config/includes.binary/isolinux/splash.png
     sed -i "s/VyOS/$name/" ./data/live-build-config/includes.binary/isolinux/menu.cfg
     defaultToml="./data/defaults.toml"
     if [ -f "$defaultToml" ]; then
