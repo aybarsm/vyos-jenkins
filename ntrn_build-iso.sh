@@ -76,10 +76,10 @@ function HandleBranding {
     --text "v$LATEST release $DATE" \
     --font-size 18 \
     --text-color white \
-    --x-align left \
+    --x-align right \
     --y-align bottom \
     --x-margin 20 \
-    --y-margin 20
+    --y-margin 30
     consoleMsg "success" "$name splash image generated."
 
     sed -i "s/VyOS/$name/" ./data/live-build-config/includes.binary/isolinux/menu.cfg
