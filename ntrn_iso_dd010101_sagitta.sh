@@ -56,7 +56,7 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 defaultSplash="$PATH_DIR_SELF/resources/not-vyos/splash.png"
-defaultSplashBak="$PATH_DIR_SELF/resources/not-vyos/splash.png.bak"
+defaultSplashBak="$defaultSplash.bak"
 if [ -f "$defaultSplash" ]; then
     consoleMsg "info" "Backing up default splash image."
     mv "$defaultSplash" "$defaultSplashBak"
