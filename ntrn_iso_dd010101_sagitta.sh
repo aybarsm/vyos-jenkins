@@ -38,6 +38,18 @@ BUILD_BY=${BUILD_BY:-$DEF_BUILD_BY}
 read -p "Enter custom packages [$DEF_CUSTOM_PACKAGE]: " CUSTOM_PACKAGE
 CUSTOM_PACKAGE=${CUSTOM_PACKAGE:-$DEF_CUSTOM_PACKAGE}
 
+consoleMsg "info" "BUILD_NAME: $BUILD_NAME"
+consoleMsg "info" "BUILD_TYPE: $BUILD_TYPE"
+consoleMsg "info" "BUILD_VERSION: $BUILD_VERSION"
+consoleMsg "info" "BUILD_BY: $BUILD_BY"
+consoleMsg "info" "CUSTOM_PACKAGE: $CUSTOM_PACKAGE"
+
+read -p "Continue? " -n 1 -r
+echo 
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
+fi
+
 consoleMsg "info" "Removing branding..."
 
 defaultSplash="$PATH_DIR_VYOS_BUILD/data/live-build-config/includes.binary/isolinux/splash.png"
