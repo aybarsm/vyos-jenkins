@@ -114,7 +114,6 @@ case "$Y_ALIGN" in
     TEXT_Y=$(( $IMAGE_HEIGHT - $Y_MARGIN ))
     ;;
 esac
-echo "TEXT_Y: $TEXT_Y"
 
 TEXT_POSITION="+${TEXT_X}+${TEXT_Y}"
 
