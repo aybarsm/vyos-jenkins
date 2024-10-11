@@ -99,6 +99,12 @@ else
   exit 1
 fi
 
+dockerBuild="DockerBuild"
+if ! IsFlagSet "-v" "$@"; then
+  dockerBuild=${dockerBuild//\"/\\\"} # escape double quotes with backslash
+  dockerBuild="RunWithLazyStdout \"$dockerBuild\""
+fi
+
 (
   FilterStderr "( $dockerBuild )" "(useradd warning)"
   exit $?
