@@ -22,6 +22,7 @@ DEF_BUILD_TYPE="release"
 DEF_BUILD_VERSION="1.4.x-$DATE_SAFE"
 DEF_BUILD_BY="noc@blrm.net"
 DEF_CUSTOM_PACKAGE="vyos-1x-smoketest cloud-init"
+DEF_DEBRANDING_NAME="ntrnROS"
 
 read -p "Enter build name [$DEF_BUILD_NAME]: " BUILD_NAME
 BUILD_NAME=${BUILD_NAME:-$DEF_BUILD_NAME}
@@ -38,11 +39,15 @@ BUILD_BY=${BUILD_BY:-$DEF_BUILD_BY}
 read -p "Enter custom packages [$DEF_CUSTOM_PACKAGE]: " CUSTOM_PACKAGE
 CUSTOM_PACKAGE=${CUSTOM_PACKAGE:-$DEF_CUSTOM_PACKAGE}
 
+read -p "Enter debranding name [$DEF_DEBRANDING_NAME]: " DEBRANDING_NAME
+DEBRANDING_NAME=${DEBRANDING_NAME:-$DEF_DEBRANDING_NAME}
+
 consoleMsg "info" "BUILD_NAME: $BUILD_NAME"
 consoleMsg "info" "BUILD_TYPE: $BUILD_TYPE"
 consoleMsg "info" "BUILD_VERSION: $BUILD_VERSION"
 consoleMsg "info" "BUILD_BY: $BUILD_BY"
 consoleMsg "info" "CUSTOM_PACKAGE: $CUSTOM_PACKAGE"
+consoleMsg "info" "DEBRANDING_NAME: $DEBRANDING_NAME"
 
 read -p "Continue? " -n 1 -r
 echo 
@@ -99,7 +104,8 @@ docker run --rm --privileged --name="vyos-build" -v ./vyos-build/:/vyos -e GOSU_
         --version "$BUILD_VERSION" \
         --vyos-mirror "https://vyos.tnyzeq.icu/apt/sagitta" \
         --custom-apt-key /opt/apt.gpg.key \
-        --custom-package "$CUSTOM_PACKAGE"
+        --custom-package "$CUSTOM_PACKAGE" \
+        --debranding-name "$DEBRANDING_NAME"
 
 if [ -f vyos-build/build/live-image-amd64.hybrid.iso ]; then
     iso="vyos-$BUILD_VERSION-iso-amd64.iso"
