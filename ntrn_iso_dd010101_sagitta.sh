@@ -39,9 +39,16 @@ read -p "Enter custom packages [$DEF_CUSTOM_PACKAGE]: " CUSTOM_PACKAGE
 CUSTOM_PACKAGE=${CUSTOM_PACKAGE:-DEF_CUSTOM_PACKAGE}
 
 consoleMsg "info" "Removing branding..."
+
+defaultSplash="$PATH_DIR_VYOS_BUILD/data/live-build-config/includes.binary/isolinux/splash.png"
+if [ -f "$defaultSplash" ]; then
+    consoleMsg "info" "Removing existing splash image."
+    rm -f "$defaultSplash"
+fi
+
 ${PATH_DIR_SELF}/ntrn/splash.sh \
 --src "$PATH_DIR_SELF/ntrn/splash.png" \
---dst "$PATH_DIR_VYOS_BUILD/data/live-build-config/includes.binary/isolinux/splash.png" \
+--dst "$defaultSplash" \
 --text "v1.4.x $BUILD_TYPE $DATE" \
 --font-size 18 \
 --text-color white \
