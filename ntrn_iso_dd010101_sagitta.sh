@@ -55,14 +55,14 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
 fi
 
-consoleMsg "info" "Removing branding..."
-
-defaultSplash="$PATH_DIR_VYOS_BUILD/data/live-build-config/includes.binary/isolinux/splash.png"
+defaultSplash="$PATH_DIR_SELF/resources/not-vyos/splash.png"
+defaultSplashBak="$PATH_DIR_SELF/resources/not-vyos/splash.png.bak"
 if [ -f "$defaultSplash" ]; then
-    consoleMsg "info" "Removing existing splash image."
-    rm -f "$defaultSplash"
+    consoleMsg "info" "Backing up default splash image."
+    mv "$defaultSplash" "$defaultSplashBak"
 fi
 
+consoleMsg "info" "Generating splash image..."
 ${PATH_DIR_SELF}/ntrn/splash.sh \
 --src "$PATH_DIR_SELF/ntrn/splash.png" \
 --dst "$defaultSplash" \
@@ -75,23 +75,6 @@ ${PATH_DIR_SELF}/ntrn/splash.sh \
 --y-margin 30
 
 consoleMsg "success" "$BUILD_NAME splash image generated."
-
-sed -i "s/VyOS/$BUILD_NAME/" "$PATH_DIR_VYOS_BUILD/data/live-build-config/includes.binary/isolinux/menu.cfg"
-
-defaultToml="$PATH_DIR_VYOS_BUILD/data/defaults.toml"
-if [ -f "$defaultToml" ]; then
-    sed -i -E 's/website_url =.*/website_url = "localhost"/' "$defaultToml"
-    sed -i -E 's/support_url =.*/support_url = "There is no official support."/' "$defaultToml"
-    sed -i -E 's/bugtracker_url =.*/bugtracker_url = "DO NOT report bugs to VyOS!"/' "$defaultToml"
-    sed -i -E "s/project_news_url =.*/project_news_url = \"This is unofficial $BUILD_NAME build.\"/" "$defaultToml"
-fi
-
-defaultMotd="$PATH_DIR_VYOS_BUILD/data/live-build-config/includes.chroot/usr/share/vyos/default_motd"
-if [ -f "$defaultMotd" ]; then
-    sed -i "s/VyOS/$BUILD_NAME/" "$defaultMotd"
-    sed -i -E "s/Check out project news at.*/This is unofficial $BUILD_NAME build./" "$defaultMotd"
-    sed -i -E 's/and feel free to report bugs at.*/DO NOT report bugs to VyOS!/' "$defaultMotd"
-fi
 
 docker pull vyos/vyos-build:sagitta
 docker run --rm --privileged --name="vyos-build" -v ./vyos-build/:/vyos -e GOSU_UID=$(id -u) -e GOSU_GID=$(id -g) \
@@ -106,6 +89,15 @@ docker run --rm --privileged --name="vyos-build" -v ./vyos-build/:/vyos -e GOSU_
         --custom-apt-key /opt/apt.gpg.key \
         --custom-package "$CUSTOM_PACKAGE" \
         --debranding-name "$DEBRANDING_NAME"
+
+if [ -f "$defaultSplashBak" ]; then
+    if [ -f "$defaultSplash" ]; then
+        consoleMsg "info" "Removing custom splash image."
+        rm -f "$defaultSplash"
+    fi
+    consoleMsg "info" "Restoring default splash image."
+    mv "$defaultSplashBak" "$defaultSplash"
+fi
 
 if [ -f vyos-build/build/live-image-amd64.hybrid.iso ]; then
     iso="vyos-$BUILD_VERSION-iso-amd64.iso"
