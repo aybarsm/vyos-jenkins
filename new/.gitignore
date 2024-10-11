@@ -1,0 +1,4 @@
+/apt/*
+/build/*
+
+!.gitignore
