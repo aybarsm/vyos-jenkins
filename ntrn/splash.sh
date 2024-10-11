@@ -6,8 +6,8 @@ source "$PATH_DIR_SELF/helper"
 
 if ! command -v convert &> /dev/null; then
     consoleMsg "warning" "ImageMagick is missing. Installing..."
-    DEBIAN_FRONTEND=noninteractive apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y imagemagick
+    DEBIAN_FRONTEND=noninteractive sudo apt-get update
+    DEBIAN_FRONTEND=noninteractive sudo apt-get install -y imagemagick
     consoleMsg "success" "ImageMagick installed."
 fi
 
