@@ -52,7 +52,7 @@ RELEASE_NAME="$LATEST-release-$DATE_SAFE"
 
 if [ -d vyos-build ]; then
   echo "Removing old vyos-build directory..."
-  rm -rf vyos-build
+  sudo rm -rf vyos-build
 fi
 
 echo "Cloning the VyOS build repository..."
@@ -60,7 +60,9 @@ git clone -q https://github.com/dd010101/vyos-build > /dev/null
 pushd vyos-build > /dev/null
 
 echo "Checking out the $BRANCH branch..."
+#git reset --hard a18ed1509598454d9a43850a7b4e78e4e2f97eb5 > /dev/null
 git checkout "$BRANCH" > /dev/null
+git reset --hard 4d7b1ab1f5e6bb90fa12e9bd50759fb754652717 > /dev/null
 
 function HandleBranding {
   if [ "$NOT_VYOS" != "" ]; then
@@ -70,27 +72,36 @@ function HandleBranding {
     fi
 
     consoleMsg "info" "Removing branding..."
+    defaultSplash="$PATH_DIR_SELF/vyos-build/data/live-build-config/includes.binary/isolinux/splash.png"
+
+    if [ -f "$defaultSplash"]; then
+        sudo rm -f "$defaultSplash"
+    fi
+
     ${PATH_DIR_SELF}/ntrn/splash.sh \
     --src "$PATH_DIR_SELF/ntrn/splash.png" \
-    --dst "$PATH_DIR_SELF/vyos-build/data/live-build-config/includes.binary/isolinux/splash.png" \
+    --dst "$defaultSplash" \
     --text "v$LATEST release $DATE" \
     --font-size 18 \
     --text-color white \
-    --x-align left \
+    --x-align right \
     --y-align bottom \
     --x-margin 20 \
-    --y-margin 20
+    --y-margin 30
     consoleMsg "success" "$name splash image generated."
 
-    sed -i "s/VyOS/$name/" ./data/live-build-config/includes.binary/isolinux/menu.cfg
-    defaultToml="./data/defaults.toml"
+    defaultMenu="$PATH_DIR_SELF/vyos-build/data/live-build-config/includes.binary/isolinux/menu.cfg"
+    sed -i "s/VyOS/$name/" "$defaultMenu"
+
+    defaultToml="$PATH_DIR_SELF/vyos-build/data/defaults.toml"
     if [ -f "$defaultToml" ]; then
       sed -i -E 's/website_url =.*/website_url = "localhost"/' "$defaultToml"
       sed -i -E 's/support_url =.*/support_url = "There is no official support."/' "$defaultToml"
       sed -i -E 's/bugtracker_url =.*/bugtracker_url = "DO NOT report bugs to VyOS!"/' "$defaultToml"
       sed -i -E "s/project_news_url =.*/project_news_url = \"This is unofficial $name build.\"/" "$defaultToml"
     fi
-    defaultMotd="./data/live-build-config/includes.chroot/usr/share/vyos/default_motd"
+
+    defaultMotd="$PATH_DIR_SELF/vyos-build/data/live-build-config/includes.chroot/usr/share/vyos/default_motd"
     if [ -f "$defaultMotd" ]; then
       sed -i "s/VyOS/$name/" "$defaultMotd"
       sed -i -E "s/Check out project news at.*/This is unofficial $name build./" "$defaultMotd"
@@ -108,19 +119,7 @@ curl -s -S --fail-with-body http://172.17.17.17/apt.gpg.key -o /tmp/apt.gpg.key
 
 popd > /dev/null
 
-function GetLatestTag {
-  # Clone the vyos-1x repo
-  git clone -q --bare https://github.com/vyos/vyos-1x.git -b $1 temp-git-tag > /dev/null
-  pushd temp-git-tag > /dev/null
-
-  # The the latest tag for this branch
-  git describe --tags --abbrev=0
-
-  popd > /dev/null
-  rm -rf temp-git-tag
-}
-
-customPackages="vyos-1x-smoketest"
+customPackages="vyos-1x-smoketest cloud-init"
 customPackages=${CUSTOM_PACKAGES:-$customPackages}
 
 echo "Building the ISO..."
